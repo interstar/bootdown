@@ -86,14 +86,21 @@ if __name__ == '__main__' :
         
     fName = sys.argv[1]
     with open(fName) as f :
-        bd = BootDown(f.read())       
+        bd = BootDown(f.read())
+        
+        # setting up target directories
         if bd.atts.has_key("dest") :
             dest = bd.atts["dest"]
         else :
             dest = fName.split(".")[0]
+            
         if not os.path.exists(dest) :
             os.makedirs(dest)
+        
         os.system("cp -rf bs %s/" % dest)
+        os.system("cp -rf assets %s/" % dest)
+        if bd.atts.has_key("bootswatch") :
+            os.system("cp bs/bootswatches/%s/bootstrap.min.css %s/bs/css/" % (bd.atts["bootswatch"],dest))
                   
         for p in bd.pages :
             f2 = open(dest+"/"+p.name,"w")
