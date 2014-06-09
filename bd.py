@@ -5,6 +5,7 @@ def ms(s) : return markdown.markdown(s.strip())
 
 def attRest(s) :
     [atts,rest] = re.split("[\s]",s,1)
+    atts = atts.replace("."," ")
     if "#" in atts :
         [cls,id] = atts.split("#")
         atts = 'class="%s" id="%s"' % (cls,id)
@@ -54,8 +55,20 @@ class Page :
 class BootDown :
     
     def pair_gen(self,s) :
-        return (y.split("=") for y in s.split("\n"))
-        
+        p = (y.split("=") for y in s.split("\n") if "=" in y)
+        return p
+
+    def make_menu(self) :
+        if self.atts.has_key("menu") :
+            def link(x) : 
+                [name,url] = x.split(" ")
+                return """\n<li><a href="%s">%s</a></li>""" % (url.strip(),name.strip()) 
+            self.atts["menu"] = '<ul class="nav navbar-nav">' + "".join(link(x.strip()) for x in self.atts["menu"].split(",")) + '\n</ul>'
+    
+            
+    def make_globals(self,s) :
+        self.atts = dict([x[0],x[1].strip()] for x in self.pair_gen(s))
+        self.make_menu()
         
     def __init__(self,page) :
         if not "\n////" in page :
@@ -63,7 +76,7 @@ class BootDown :
             self.atts = {}
         else :
             xs = page.split("\n////")
-            self.atts = dict([x[0],x[1].strip()] for x in self.pair_gen(xs[0]))
+            self.make_globals(xs[0])
             self.pages = [Page(x) for x in xs[1:]]
             
 if __name__ == '__main__' :

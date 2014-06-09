@@ -10,7 +10,8 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" href="bs/css/bootstrap.min.css">
+        <link rel="stylesheet" href="bs/css/bootstrap.min.css" media="screen">
+    
         <style>
             body {
                 padding-top: 50px;
@@ -18,6 +19,7 @@
             }
         </style>
         <link rel="stylesheet" href="bs/css/bootstrap-theme.min.css">
+        
         <link rel="stylesheet" href="bs/css/main.css">
 
         <script src="bs/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
@@ -38,7 +40,8 @@
           <a class="navbar-brand" href="#">$projectname</a>
         </div>
         
-        <div class="navbar-collapse collapse">
+        <div class="navbar-collapse collapse" id="navbar-main">
+          $menu
           <!--
           <form class="navbar-form navbar-right" role="form">
             <div class="form-group">
