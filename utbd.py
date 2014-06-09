@@ -29,7 +29,7 @@ page 1"""
 
     def test3(self) :
         s = """title=Hello World
-menu=a > a.com, b > b.com        
+menu=a a.com, b b.com        
 //// page1.html
 page 1
 //// page2.html
@@ -39,7 +39,6 @@ Page 2
         bd = BootDown(s)
         self.assertEquals(len(bd.pages),2)
         self.assertEquals(bd.atts["title"],"Hello World")
-        self.assertEquals(bd.atts["menu"],"a > a.com, b > b.com")
         p2= bd.pages[1]
         self.assertEquals(p2.name,"page2.html")
         self.assertEquals(p2.body,"""<p>Page 2</p>
@@ -61,14 +60,13 @@ class TestDivs(unittest.TestCase) :
 
     def test2(self) :       
         s = "asdas [.she jljlkj .] [.ra fafa.] jkl"
-        print s
         des = '<p>asdas</p>\n<div class="she">\n<p>jljlkj</p>\n</div>\n\n<div class="ra">\n<p>fafa</p>\n</div><p>jkl</p>'
         self.assertEquals(handleDivs(s,0).replace("\n",""),des.replace("\n",""))
 
         
 class TestRows(unittest.TestCase) :
     def test1(self) :
-        s = """menu=blah
+        s = """dummy=blah
 ////page1.html
 [.row#r1
 
@@ -92,6 +90,37 @@ class TestRows(unittest.TestCase) :
 </div>
 </div>""".replace("\n",""))
 
+class TestMenu(unittest.TestCase) :
+    def test1(self) :
+        s = """menu=About about.html, Synaesmedia http://synaesmedia.net
+////page1.html
+blah blah"""
+        bd = BootDown(s)        
+        self.assertEquals(bd.atts["menu"],"""<ul class="nav navbar-nav">
+<li><a href="about.html">About</a></li>
+<li><a href="http://synaesmedia.net">Synaesmedia</a></li>
+</ul>""")
+    def test2(self) :
+        s = """menu=OneItem oneitem.html
+////oneitem.html
+blah"""
+        bd = BootDown(s)
+        self.assertEquals(bd.atts["menu"],"""<ul class="nav navbar-nav">
+<li><a href="oneitem.html">OneItem</a></li>
+</ul>""")               
+
+class TestMultiClass(unittest.TestCase) :
+    def testMulti(self) :
+        s = """blah=Blah
+////index.html
+[.another.green#world xyz .]"""
+        bd = BootDown(s)
+        p = bd.pages[0]
+        self.assertEquals(p.body,"""
+<div class="another green" id="world">
+<p>xyz</p>
+</div>
+""")
 
 if __name__ == '__main__' :
     unittest.main()
