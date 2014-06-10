@@ -12,17 +12,7 @@ def attRest(s) :
     else :
         atts='class="%s"' % atts
     return (atts,rest)
-    
-def tryOrReport(f) :
-    def g(s) :
-        try :
-            f(s)
-        except Exception, e :
-            print e
-            print "Error in " + s
-    return g            
             
-#@tryOrReport
 def handleDivs(s,count) :
     if (not "[." in s) and (not ".]" in s) : return ms(s)
     
@@ -82,28 +72,36 @@ class BootDown :
 if __name__ == '__main__' :
     import sys,os,distutils,string
     
-    tpl = string.Template((open("index.tpl")).read())
+    codeHome = "/".join((os.path.abspath(__file__).split("/"))[:-1])+"/"
+    cwd = os.getcwd()+"/"
+    
+    print "Code Home : %s " % codeHome
+    print "CWD : %s " % cwd
+    
+    tpl = string.Template((open(codeHome+"index.tpl")).read())
         
     fName = sys.argv[1]
-    with open(fName) as f :
+    with open(cwd + "/" + fName) as f :
         bd = BootDown(f.read())
         
         # setting up target directories
         if bd.atts.has_key("dest") :
-            dest = bd.atts["dest"]
+            destPath = bd.atts["dest"]
         else :
-            dest = fName.split(".")[0]
-            
-        if not os.path.exists(dest) :
-            os.makedirs(dest)
+            destPath = fName.split(".")[0]
         
-        os.system("cp -rf bs %s/" % dest)
-        os.system("cp -rf assets %s/" % dest)
+        destPath = cwd + destPath
+        
+        if not os.path.exists(destPath) :
+            os.makedirs(destPath)
+        
+        os.system("cp -rf %s/bs %s" % (codeHome,destPath))
+        os.system("cp -rf assets %s" % destPath)
         if bd.atts.has_key("bootswatch") :
-            os.system("cp bs/bootswatches/%s/bootstrap.min.css %s/bs/css/" % (bd.atts["bootswatch"],dest))
+            os.system("cp %sbs/bootswatches/%s/bootstrap.min.css %s/bs/css/" % (codeHome,bd.atts["bootswatch"],destPath))
                   
         for p in bd.pages :
-            f2 = open(dest+"/"+p.name,"w")
+            f2 = open(destPath+"/"+p.name,"w")
             d = {"body":p.body}
             d.update(bd.atts)
 
