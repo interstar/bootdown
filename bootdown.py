@@ -40,12 +40,23 @@ class Page :
         [name,body] = (page.split("\n",1))
         self.name = name.strip()
         self.body = handleDivs(body.strip(),0)
+        self.raw = body.strip()
             
 
 class BootDown :
+
+    def __init__(self,page) :
+        page = page.decode("utf-8")
+        if not "\n////" in page :
+            self.pages = []
+            self.atts = {}
+        else :
+            xs = page.split("\n////")
+            self.make_globals(xs[0])
+            self.pages = [Page(x) for x in xs[1:]]
     
     def pair_gen(self,s) :
-        p = (y.split("=") for y in s.split("\n") if "=" in y)
+        p = (y.split("=",1) for y in s.split("\n") if "=" in y)
         return p
 
     def make_menu(self) :
@@ -54,20 +65,14 @@ class BootDown :
                 [name,url] = x.split(" ")
                 return """\n<li><a href="%s">%s</a></li>""" % (url.strip(),name.strip()) 
             self.atts["menu"] = '<ul class="nav navbar-nav">' + "".join(link(x.strip()) for x in self.atts["menu"].split(",")) + '\n</ul>'
+        else :
+            self.atts["menu"] = ""
     
             
     def make_globals(self,s) :
         self.atts = dict([x[0],x[1].strip()] for x in self.pair_gen(s))
         self.make_menu()
         
-    def __init__(self,page) :
-        if not "\n////" in page :
-            self.pages = []
-            self.atts = {}
-        else :
-            xs = page.split("\n////")
-            self.make_globals(xs[0])
-            self.pages = [Page(x) for x in xs[1:]]
             
 if __name__ == '__main__' :
     import sys,os,distutils,string
@@ -96,15 +101,19 @@ if __name__ == '__main__' :
             os.makedirs(destPath)
         
         os.system("cp -rf %s/bs %s" % (codeHome,destPath))
-        os.system("cp -rf assets %s" % destPath)
+        os.system("cp -rf assets %s/bs" % destPath)
         if bd.atts.has_key("bootswatch") :
             os.system("cp %sbs/bootswatches/%s/bootstrap.min.css %s/bs/css/" % (codeHome,bd.atts["bootswatch"],destPath))
                   
         for p in bd.pages :
-            f2 = open(destPath+"/"+p.name,"w")
-            d = {"body":p.body}
-            d.update(bd.atts)
-
-            s = tpl.safe_substitute(d)
-            f2.write(s)
+            if p.name == "main.css" :
+                f2 = open(destPath+"/bs/css/main.css","w")
+                s = p.raw 
+            else :
+                f2 = open(destPath+"/"+p.name,"w")
+                d = {"body":p.body}
+                d.update(bd.atts)
+                s = tpl.safe_substitute(d)
+                
+            f2.write(s.encode("utf-8"))
             f2.close()
