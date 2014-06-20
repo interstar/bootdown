@@ -1,7 +1,24 @@
 import re, markdown
+import csv
 
+def custom(s) :
+    r = re.compile("::CSV=(\S+)",re.MULTILINE)    
+    if r.search(s) :
+        before,after = re.split("::CSV",s,1)
+        m = r.search("::CSV"+after)
+        build = ""
+        with open(m.groups()[0], 'rb') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            for row in reader:
+                build = build + "<tr><td>" + u'</td><td>'.join((ms(i.decode("utf-8")) for i in row)) + "</td></tr>\n"
+        return before + """\n<table class="table table-striped table-bordered table-condensed">
+%s
+</table>""" % build
 
-def ms(s) : return markdown.markdown(s.strip())
+    return s                
+                
+                
+def ms(s) : return markdown.markdown(custom(s.strip()))
 
 def attRest(s) :
     [atts,rest] = re.split("[\s]",s,1)
