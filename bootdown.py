@@ -1,24 +1,38 @@
 import re, markdown
 import csv
 
-def custom(s) :
-    r = re.compile("::CSV=(\S+)",re.MULTILINE)    
-    if r.search(s) :
-        before,after = re.split("::CSV",s,1)
-        m = r.search("::CSV"+after)
-        build = ""
-        with open(m.groups()[0], 'rb') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            for row in reader:
-                build = build + "<tr><td>" + u'</td><td>'.join((ms(i.decode("utf-8")) for i in row)) + "</td></tr>\n"
-        return before + """\n<table class="table table-striped table-bordered table-condensed">
-%s
-</table>""" % build
 
-    return s                
+class Customizer :
+
+    def process(self,s) :
+        s = self.csv(s)
+        s = self.youtube(s)
+        return s                                
+    
+    def csv(self,s) :        
+        r = re.compile("::CSV=(\S+)",re.MULTILINE)    
+        if r.search(s) :
+            before,after = re.split("::CSV=",s,1)
+            m = r.search("::CSV="+after)
+            build = ""
+            with open(m.groups()[0], 'rb') as csvfile:
+                reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+                for row in reader:
+                    build = build + "<tr><td>" + u'</td><td>'.join((ms(i.decode("utf-8")) for i in row)) + "</td></tr>\n"
+            return before + ("""\n<table class="table table-striped table-bordered table-condensed">
+    %s
+    </table>""" % build)
+        return s
+    
+    def youtube(self,s) :
+        r = re.compile("::YOUTUBE=(\S+)",re.MULTILINE)
+        if r.search(s) :
+            s = r.sub(r"""<iframe width="640" height="360" src="\1" frameborder="0" allowfullscreen></iframe>""",s)
+        return s                    
+            
+customizer = Customizer()
                 
-                
-def ms(s) : return markdown.markdown(custom(s.strip()))
+def ms(s) : return markdown.markdown(customizer.process(s.strip()))
 
 def attRest(s) :
     [atts,rest] = re.split("[\s]",s,1)
