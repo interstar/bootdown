@@ -1,5 +1,5 @@
 menu=About about.html, Tricks tricks.html, Credits credits.html
-footer=Copyleft Phil Jones, 2014-2016
+footer=Copyleft <a href="http://project.geekweaver.com/">Phil Jones</a>, 2014-2016
 projectname=An Example Site
 bootswatch=slate
 head_extra=
