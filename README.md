@@ -14,7 +14,7 @@ REALLY lazy static sites with Bootstrap and Markdown.
 
 Compare what's in the example.md file (your entire site), with the produced static site.
 
-### Philosophy
+## Philosophy
 
 Basically it's a Markdown to HTML processor with some extra tricks added to it
 
@@ -23,7 +23,8 @@ Basically it's a Markdown to HTML processor with some extra tricks added to it
   * A very light-weight markup for defining divs with classes and ids using &lbrack;.CLASSNAME#ID and .&rbrack;
   * A markup for including CSV files as tables.
   
-Unlike most static site systems that are built around templating engines, with BootDown you write both your page content, and the structure in a single source file. Using &lbrack;. .&rbrack;] for divs. This gives you all the flexibility you need to layout your pages any way you like, within the BootStrap grid.
+Unlike most static site systems that are built around templating engines, with BootDown you write both your page content, and the structure in a single source file. Using &lbrack;. .&rbrack; for divs. This gives you all the flexibility you need to layout your pages any way you like, within the BootStrap grid.
+
 
 ## Aims and Features
 
@@ -33,6 +34,7 @@ Unlike most static site systems that are built around templating engines, with B
   * Single Python script
   * Write your entire site in a single .md file. No faffing with managing multiple source files.
   * Suitable for landing pages, documentation sites, guides, handbooks, portfolios etc.
+  
 
 ## Dependencies
 
