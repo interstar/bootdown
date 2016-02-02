@@ -17,13 +17,13 @@ Compare what's in the example.md file (your entire site), with the produced stat
 ### Philosophy
 
 Basically it's a Markdown to HTML processor with some extra tricks added to it
+
   * A header section that lets you define a menu, footer, projectname, bootswatch, head_extra (extra code to put in page headers)
   * A "page-break" option (lines beginning with ////) so that your single .md file becomes a number of HTML pages
-  * A very light-weight markup for defining divs with classes and ids using [.CLASSNAME#ID and .]
+  * A very light-weight markup for defining divs with classes and ids using &lbrack;.CLASSNAME#ID and .&rbrack;
   * A markup for including CSV files as tables.
-  * A markup for embedding YouTube videos.
   
-Unlike most static site systems that are built around templating engines, with BootDown you write both your page content, and the structure in a single source file. Using the [. and .] shorthand for divs. This gives you all the flexibility you need to layout your pages any way you like, within the BootStrap grid.
+Unlike most static site systems that are built around templating engines, with BootDown you write both your page content, and the structure in a single source file. Using &lbrack;. .&rbrack;] for divs. This gives you all the flexibility you need to layout your pages any way you like, within the BootStrap grid.
 
 ## Aims and Features
 
