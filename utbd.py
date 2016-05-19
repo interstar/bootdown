@@ -1,6 +1,6 @@
 
 import unittest
-from bd import *
+from bootdown import *
 
 class TestPage(unittest.TestCase) :
     def test1(self) :       
@@ -16,7 +16,7 @@ class TestPageBreak(unittest.TestCase) :
         self.assertEquals(bd.pages,[])
         
     def test2(self) :
-        s = """title=Hello World
+        s = """title=Hello World    
 //// page1.html
 page 1"""        
         bd = BootDown(s)
@@ -121,6 +121,45 @@ class TestMultiClass(unittest.TestCase) :
 <p>xyz</p>
 </div>
 """)
+
+class TestCustomizer(unittest.TestCase) :
+    def test1(self) :
+        c = Customizer()
+         
+        s1 = "hello world"
+        self.assertEquals(c.postProcess(s1),s1)
+         
+    def test2(self) :
+        c = Customizer()
+        
+        s2 = "::YOUTUBE=https://www.youtube.com/watch?v=MO2mb5HY3Yg"
+        self.assertEquals(c.postProcess(s2),"""<iframe width="640" height="360" src="https://www.youtube.com/watch?v=MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe>""")
+
+        s3 = "::YOUTUBE=http://www.youtube.com/watch?v=MO2mb5HY3Yg"
+        self.assertEquals(c.postProcess(s3),"""<iframe width="640" height="360" src="http://www.youtube.com/watch?v=MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe>""")
+
+    def test3(self) : 
+        c = Customizer() 
+        s = "::CELL= About,, aboutimg.png,, About me,, about.html"
+        self.assertEquals(c.postProcess(s),"""<div class="col-md-4">
+
+<h3>About</h3>
+
+<a href='about.html'><img src='aboutimg.png' width='100px' /></a>
+<div>
+About me
+</div>
+</div>""")
+        s = "::CELL= Elsewhere,, elsewhere.png,, Elsewhere,, elsewhere.html"
+        self.assertEquals(c.postProcess(s),"""<div class="col-md-4">
+
+<h3>Elsewhere</h3>
+
+<a href='elsewhere.html'><img src='elsewhere.png' width='100px' /></a>
+<div>
+Elsewhere
+</div>
+</div>""")
 
 if __name__ == '__main__' :
     unittest.main()

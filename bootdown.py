@@ -4,9 +4,14 @@ import csv
 
 class Customizer :
 
-    def process(self,s) :
+    def preProcess(self,s) :
+        return s
+        
+    def postProcess(self,s) :
         s = self.csv(s)
         s = self.youtube(s)
+        s = self.bigcell(s)
+        
         return s                                
     
     def csv(self,s) :        
@@ -30,9 +35,33 @@ class Customizer :
             s = r.sub(r"""<iframe width="640" height="360" src="\1" frameborder="0" allowfullscreen></iframe>""",s)
         return s                    
             
+
+    def bigcell(self,s) :
+        """ s is formated like this :
+        ::CELL= title,, img,, desc,, link
+        """
+        r = re.compile("::CELL=(.+)$",re.MULTILINE)
+        if r.search(s) :        
+            print s
+            print r.match(s)  
+            print r.match(s).groups()
+            title,img,desc,link = (x.strip() for x in (r.match(s).groups()[0]).split(",,"))  
+            
+            cell = """<div class="col-md-4">
+
+<h3>%s</h3>
+
+<a href='%s'><img src='%s' width='100px' /></a>
+<div>
+%s
+</div>
+</div>"""
+            return cell % (title,link,img,desc)
+        return s
+                    
 customizer = Customizer()
                 
-def ms(s) : return markdown.markdown(customizer.process(s.strip()))
+def ms(s) : return markdown.markdown(customizer.postProcess(s.strip()))
 
 def attRest(s) :
     [atts,rest] = re.split("[\s]",s,1)
@@ -40,6 +69,9 @@ def attRest(s) :
     if "#" in atts :
         [cls,id] = atts.split("#")
         atts = 'class="%s" id="%s"' % (cls,id)
+    elif "/" in atts :
+        classes = atts.split("/")
+        atts = 'class="' + " ".join(classes) + '"'     
     else :
         atts='class="%s"' % atts
     return (atts,rest)
@@ -101,8 +133,10 @@ class BootDown :
     
             
     def make_globals(self,s) :
-        self.atts = dict([x[0],x[1].strip()] for x in self.pair_gen(s))
+        self.atts = dict([x[0],x[1].strip()] for x in self.pair_gen(s))        
         self.make_menu()
+        if not self.atts.has_key("head_extra") : self.atts["head_extra"] = ""
+        
         
             
 if __name__ == '__main__' :
@@ -114,7 +148,6 @@ if __name__ == '__main__' :
     print "Code Home : %s " % codeHome
     print "CWD : %s " % cwd
     
-    tpl = string.Template((open(codeHome+"index.tpl")).read())
         
     fName = sys.argv[1]
     with open(cwd + "/" + fName) as f :
@@ -133,9 +166,18 @@ if __name__ == '__main__' :
         
         os.system("cp -rf %s/bs %s" % (codeHome,destPath))
         os.system("cp -rf assets %s/bs" % destPath)
-        if bd.atts.has_key("bootswatch") :
-            os.system("cp %sbs/bootswatches/%s/bootstrap.min.css %s/bs/css/" % (codeHome,bd.atts["bootswatch"],destPath))
-                  
+        
+
+        if bd.atts.has_key("custom_template") :
+            customDir = bd.atts["custom_template"]
+            os.system("cp -rf %s/* %s/bs/" % (customDir,destPath))
+            tpl = string.Template((open(customDir+"/index.tpl")).read())
+        else :
+            tpl = string.Template((open(codeHome+"index.tpl")).read())
+            if bd.atts.has_key("bootswatch") :
+                os.system("cp %sbs/bootswatches/%s/bootstrap.min.css %s/bs/css/" % (codeHome,bd.atts["bootswatch"],destPath))
+        
+                              
         for p in bd.pages :
             if p.name == "main.css" :
                 f2 = open(destPath+"/bs/css/main.css","w")
