@@ -68,7 +68,17 @@ Unlike most static site systems that are built around templating engines, with B
 ::CSV=example.csv
 
 ## Embedded YouTube
-::YOUTUBE=https://www.youtube.com/watch?v=kszLwBaC4Sw
+
+::YOUTUBE=https://www.youtube.com/embed/yvgPrZNp4So
+
+## Embedded SoundCloud
+
+::SOUNDCLOUD=210490968
+
+## Embedded BandCamp
+
+::BANDCAMP=2114639589 http://synaesmedia.bandcamp.com/album/mentufacturer-brazewok-ep Mentufacturer - Brazewok EP by Mentufacturer
+
 .] .]
 ////credits.html
 [.container [.row [.col-md-12
