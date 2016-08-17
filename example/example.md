@@ -76,13 +76,13 @@ Unlike most static site systems that are built around templating engines, with B
 [.row [.col-md-8
 ## Embedded YouTube
 
-::YOUTUBE=https://www.youtube.com/embed/yvgPrZNp4So
+::YOUTUBE=https://www.youtube.com/embed/LnvBVhDhGbw
 .] 
 
 
 [.col-md-4
 ## Embedded SoundCloud
-::SOUNDCLOUD=210490968
+::SOUNDCLOUD=https://api.soundcloud.com/playlists/165775
 .] .]
 
 [.row [.col-md-4
