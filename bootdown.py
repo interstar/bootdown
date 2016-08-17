@@ -1,85 +1,17 @@
-import re, markdown
-import csv
+
+from chefs import mainChef, NullChef, ms
+
+import re, os
 
 
-class Customizer :
+custom_chef = NullChef()
 
-    def preProcess(self,s) :
-        return s
-        
-    def postProcess(self,s) :
-        s = self.csv(s)
-        s = self.youtube(s)
-        s = self.soundcloud(s)
-        s = self.bandcamp(s)
-        s = self.bigcell(s)
-        
-        return s                                
-    
-    def csv(self,s) :        
-        r = re.compile("::CSV=(\S+)",re.MULTILINE)    
-        if r.search(s) :
-            before,after = re.split("::CSV=",s,1)
-            m = r.search("::CSV="+after)
-            build = ""
-            with open(m.groups()[0], 'rb') as csvfile:
-                reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-                for row in reader:
-                    build = build + "<tr><td>" + u'</td><td>'.join((ms(i.decode("utf-8")) for i in row)) + "</td></tr>\n"
-            return before + ("""\n<table class="table table-striped table-bordered table-condensed">
-    %s
-    </table>""" % build) + after    
-        return s
-    
-    def youtube(self,s) :
-        r = re.compile("::YOUTUBE=(\S+)",re.MULTILINE)
-        if r.search(s) :            
-            s = r.sub(r"""<iframe width="640" height="360" src="\1" frameborder="0" allowfullscreen></iframe>""",s)
-            print s
-        return s
-            
-    def soundcloud(self,s) :
-        r = re.compile("::SOUNDCLOUD=(\S+)",re.MULTILINE)
-        if r.search(s) :
-            s = r.sub(r"""<iframe width="100%" height="450" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/\1&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;visual=true"></iframe>""",s)
-            print s
-        return s
+try :
+    from local_chefs import makeCustomChef
+    custom_chef = makeCustomChef()
+except Exception, e :
+    pass
 
-    def bandcamp(self,s) :
-        r = re.compile("::BANDCAMP=(\S+)\s+(\S+)\s+(.+)",re.MULTILINE)
-        if r.search(s) :
-            s = r.sub(r"""<iframe style="border: 0; width: 350px; height: 555px;" src="https://bandcamp.com/EmbeddedPlayer/album=\1/size=large/bgcol=ffffff/linkcol=0687f5/transparent=true/" seamless><a href="\2">\3</a></iframe>""",s)
-            print s
-        return s
-
-
-
-    def bigcell(self,s) :
-        """ s is formated like this :
-        ::CELL= title,, img,, desc,, link
-        """
-        r = re.compile("::CELL=(.+)$",re.MULTILINE)
-        if r.search(s) :        
-            print s
-            print r.match(s)  
-            print r.match(s).groups()
-            title,img,desc,link = (x.strip() for x in (r.match(s).groups()[0]).split(",,"))  
-            
-            cell = """<div class="col-md-4">
-
-<h3>%s</h3>
-
-<a href='%s'><img src='%s' width='100px' /></a>
-<div>
-%s
-</div>
-</div>"""
-            return cell % (title,link,img,desc)
-        return s
-                    
-customizer = Customizer()
-                
-def ms(s) : return markdown.markdown(customizer.postProcess(s.strip()))
 
 def attRest(s) :
     [atts,rest] = re.split("[\s]",s,1)
@@ -126,15 +58,24 @@ class Page :
 
 class BootDown :
 
-    def __init__(self,page) :
-        page = page.decode("utf-8")
-        if not "\n////" in page :
+    def __init__(self,cwd,src) :
+        src = src.decode("utf-8")
+        if not "\n////" in src :
             self.pages = []
             self.atts = {}
         else :
-            xs = page.split("\n////")
+            xs = src.split("\n////")
             self.make_globals(xs[0])
             self.pages = [Page(x) for x in xs[1:]]
+            
+            # extra pages            
+            if self.atts.has_key("extra_pages") : 
+                pages_path = cwd + "/" + self.atts["extra_pages"]
+                page_names = [x for x in os.listdir(pages_path) if x[-3:]=='.md']
+                for p in page_names :  
+                    with open(pages_path+"/"+p) as f:
+                        self.pages.append(Page(p.replace(".md",".html")+"\n"+f.read())) 
+                        
     
     def pair_gen(self,s) :
         p = (y.split("=",1) for y in s.split("\n") if "=" in y)
@@ -154,6 +95,7 @@ class BootDown :
         self.atts = dict([x[0],x[1].strip()] for x in self.pair_gen(s))        
         self.make_menu()
         if not self.atts.has_key("head_extra") : self.atts["head_extra"] = ""
+            
         
         
             
@@ -179,7 +121,7 @@ if __name__ == '__main__' :
     print "fName : %s" % fName
 
     with open(os.path.join(cwd, fName)) as f :
-        bd = BootDown(f.read())
+        bd = BootDown(cwd,f.read())
         
         # setting up target directories
         if bd.atts.has_key("dest") :
@@ -207,17 +149,28 @@ if __name__ == '__main__' :
             names = os.listdir(customDir)
             print names
             for name in names : 
+                print "Currently copying ", name
                 srcname = os.path.join(customDir, name)
                 dstname = os.path.join(destPath, "bs", name)
-                try :
-                    if os.path.isdir(srcname):
+                if os.path.isdir(srcname):
+                    try :
                         shutil.copytree(srcname, dstname)
-                    else:
-                        shutil.copy2(srcname, dstname)
-                except Exception, e :
-                    print "Failed to copy %s to %s" % (srcname,dstname)
-                    raise e
-			
+                    except OSError, oe :         
+                        if oe.errno == 17 :
+                            try :
+                                shutil.rmtree(dstname)
+                                shutil.copytree(srcname,dstname)           
+                            except Exception, e :
+                                print "Problem delete and copy %s to %s" % (srcname,dstname)
+                                raise e
+                        else :
+                            raise e                                
+                    except Exception, e :
+                        print "Failed to copy %s to %s" % (srcname,dstname)
+                        raise e
+                else:
+                    shutil.copy2(srcname, dstname)
+                    
             tpl = string.Template((open(os.path.join(customDir,"index.tpl"))).read())
         else :
             tpl = string.Template((open(os.path.join(codeHome,"index.tpl"))).read())
