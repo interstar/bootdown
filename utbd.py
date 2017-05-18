@@ -1,6 +1,8 @@
 
 import unittest
-from bootdown import *
+from bootdown import Page, BootDown, handleDivs
+
+from txlib import MarkdownThoughtStorms
 
 class TestPage(unittest.TestCase) :
     def test1(self) :       
@@ -12,14 +14,14 @@ class TestPageBreak(unittest.TestCase) :
  
     def test1(self) :
         s = "hello world"
-        bd = BootDown(s)
+        bd = BootDown("",s)
         self.assertEquals(bd.pages,[])
         
     def test2(self) :
         s = """title=Hello World    
 //// page1.html
 page 1"""        
-        bd = BootDown(s)
+        bd = BootDown("",s)
         self.assertEquals(len(bd.pages),1)
         self.assertEquals(bd.atts["title"],"Hello World")
         self.assertEquals(bd.pages[0].name,"page1.html")
@@ -36,7 +38,7 @@ page 1
 Page 2
 
 *  list"""
-        bd = BootDown(s)
+        bd = BootDown("",s)
         self.assertEquals(len(bd.pages),2)
         self.assertEquals(bd.atts["title"],"Hello World")
         p2= bd.pages[1]
@@ -48,20 +50,25 @@ Page 2
 
 class TestDivs(unittest.TestCase) :
     def test1(self) :
-        s = "sfds [.boo fsfsdf [.hoo sdfsdfs[.shuff#ling sdfds .] dsfsd.]sdfs.]"
-        des = """<p>sfds</p><div class="boo">
-<p>fsfsdf</p><div class="hoo">
-<p>sdfsdfs</p><div class="shuff" id="ling">
-<p>sdfds</p>
-</div><p>dsfsd</p>
-</div><p>sdfs</p>
+        s = "abc [.boo def [.hoo ghi[.shuff#ling jkl .] mno.]pqrs.]"
+        des = """<p>abc</p>
+<div class="boo">
+<p>def</p>
+<div class="hoo">
+<p>ghi</p>
+<div class="shuff" id="ling">
+<p>jkl</p>
+</div>
+<p>mno</p>
+</div>
+<p>pqrs</p>
 </div>"""
-        self.assertEquals(handleDivs(s,0).replace("\n",""),des.replace("\n",""))
+        self.assertEquals(handleDivs(s,0,"").replace("\n",""),des.replace("\n",""))
 
     def test2(self) :       
-        s = "asdas [.she jljlkj .] [.ra fafa.] jkl"
-        des = '<p>asdas</p>\n<div class="she">\n<p>jljlkj</p>\n</div>\n\n<div class="ra">\n<p>fafa</p>\n</div><p>jkl</p>'
-        self.assertEquals(handleDivs(s,0).replace("\n",""),des.replace("\n",""))
+        s = "qwerty [.she uiop .] [.ra fafa.] jkl"
+        des = '<p>qwerty</p>\n<div class="she">\n<p>uiop</p>\n</div>\n\n<div class="ra">\n<p>fafa</p>\n</div>\n<p>jkl</p>\n'
+        self.assertEquals(handleDivs(s,0,"").replace("\n",""),des.replace("\n",""))
 
         
 class TestRows(unittest.TestCase) :
@@ -72,18 +79,17 @@ class TestRows(unittest.TestCase) :
 
 [.span3
 
-# Page 1
+# Page 5
 
 [.hoo#boo hello inside .]
 .]
 
 .]"""
-        bd = BootDown(s)
+        bd = BootDown("",s)
         p = bd.pages[0]
         self.assertEquals(p.body.replace("\n",""),"""<div class="row" id="r1">
-
 <div class="span3">
-<h1>Page 1</h1>
+<h1>Page 5</h1>
 <div class="hoo" id="boo">
 <p>hello inside</p>
 </div>
@@ -95,7 +101,7 @@ class TestMenu(unittest.TestCase) :
         s = """menu=About about.html, Synaesmedia http://synaesmedia.net
 ////page1.html
 blah blah"""
-        bd = BootDown(s)        
+        bd = BootDown("",s)        
         self.assertEquals(bd.atts["menu"],"""<ul class="nav navbar-nav">
 <li><a href="about.html">About</a></li>
 <li><a href="http://synaesmedia.net">Synaesmedia</a></li>
@@ -104,7 +110,7 @@ blah blah"""
         s = """menu=OneItem oneitem.html
 ////oneitem.html
 blah"""
-        bd = BootDown(s)
+        bd = BootDown("",s)
         self.assertEquals(bd.atts["menu"],"""<ul class="nav navbar-nav">
 <li><a href="oneitem.html">OneItem</a></li>
 </ul>""")               
@@ -113,8 +119,8 @@ class TestMultiClass(unittest.TestCase) :
     def testMulti(self) :
         s = """blah=Blah
 ////index.html
-[.another.green#world xyz .]"""
-        bd = BootDown(s)
+[.another/green#world xyz .]"""
+        bd = BootDown("",s)
         p = bd.pages[0]
         self.assertEquals(p.body,"""
 <div class="another green" id="world">
@@ -124,42 +130,20 @@ class TestMultiClass(unittest.TestCase) :
 
 class TestCustomizer(unittest.TestCase) :
     def test1(self) :
-        c = Customizer()
+        c = MarkdownThoughtStorms()
          
-        s1 = "hello world"
-        self.assertEquals(c.postProcess(s1),s1)
+        s1 = "<p>hello world</p>"
+        self.assertEquals(c.cook(s1,{}),s1)
          
     def test2(self) :
-        c = Customizer()
+        c = MarkdownThoughtStorms()
         
-        s2 = "::YOUTUBE=https://www.youtube.com/watch?v=MO2mb5HY3Yg"
-        self.assertEquals(c.postProcess(s2),"""<iframe width="640" height="360" src="https://www.youtube.com/watch?v=MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe>""")
+        s2 = """[<YOUTUBE
+id : MO2mb5HY3Yg
+>]"""
+        self.assertEquals(c.cook(s2,{}),"""<div class="youtube-embedded"><iframe width="400" height="271" src="http://www.youtube.com/embed/MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe></div>""")
 
-        s3 = "::YOUTUBE=http://www.youtube.com/watch?v=MO2mb5HY3Yg"
-        self.assertEquals(c.postProcess(s3),"""<iframe width="640" height="360" src="http://www.youtube.com/watch?v=MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe>""")
-
-    def test3(self) : 
-        c = Customizer() 
-        s = "::CELL= About,, aboutimg.png,, About me,, about.html"
-        self.assertEquals(c.postProcess(s),"""<div class="col-md-4">
-
-<h3>About</h3>
-
-<a href='about.html'><img src='aboutimg.png' width='100px' /></a>
-<div>
-About me
-</div>
-</div>""")
-        s = "::CELL= Elsewhere,, elsewhere.png,, Elsewhere,, elsewhere.html"
-        self.assertEquals(c.postProcess(s),"""<div class="col-md-4">
-
-<h3>Elsewhere</h3>
-
-<a href='elsewhere.html'><img src='elsewhere.png' width='100px' /></a>
-<div>
-Elsewhere
-</div>
-</div>""")
 
 if __name__ == '__main__' :
     unittest.main()
+
