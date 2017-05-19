@@ -42,5 +42,5 @@ Unlike most static site systems that are built around templating engines, with B
 
 ## Dependencies
 
-Needs Python's Markdown library installed
+Needs Python's Markdown and CSV libraries installed
 
