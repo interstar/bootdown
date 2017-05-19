@@ -80,11 +80,6 @@ path : example.csv
 
 
 
-### Other Table
-
-hello,, teenage,, america
-one,, two,, three
-
 .] .]
 
 [.row [.col-md-8

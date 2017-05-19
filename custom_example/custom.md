@@ -96,31 +96,46 @@ Unlike most static site systems that are built around templating engines, with B
 
 [.row [.col-md-12
 ### A CSV file
-::CSV=example.csv
+
+[<CSV
+path : example.csv
+
+>]
 
 .] .]
 
 [.row [.col-md-8
 ### Embedded YouTube
+[<YOUTUBE
+id : LnvBVhDhGbw
+>]
 
-::YOUTUBE=https://www.youtube.com/embed/LnvBVhDhGbw
 .] 
 
 
 [.col-md-4
 ### Embedded SoundCloud
-::SOUNDCLOUD=https://api.soundcloud.com/playlists/165775
+
+[<SOUNDCLOUD
+id : 165775
+>]
+
 .] .]
 
 [.row [.col-md-4
 ### Embedded BandCamp
-::BANDCAMP=2114639589 http://synaesmedia.bandcamp.com/album/mentufacturer-brazewok-ep Mentufacturer - Brazewok EP by Mentufacturer
+
+[<BANDCAMP
+id : 2114639589
+url : http://synaesmedia.bandcamp.com/album/mentufacturer-brazewok-ep
+description : Mentufacturer - Brazewok EP by Mentufacturer
+>]
 .] 
 
 [.col-md-8
 ### Hyperlinks
 
-This links to [[HelloWorld]] and [[AnotherGreenWorld]].
+This links to [[http://project.geekweaver.com the Project GeekWeaver site]].
 .] .]
 
 .]
