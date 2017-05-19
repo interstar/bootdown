@@ -1,16 +1,8 @@
 
-from chefs import mainChef, NullChef, ms
-
 import re, os
 
-
-custom_chef = NullChef()
-
-try :
-    from local_chefs import makeCustomChef
-    custom_chef = makeCustomChef()
-except Exception, e :
-    pass
+from txlib import MarkdownThoughtStorms
+chef = MarkdownThoughtStorms()
 
 
 def attRest(s) :
@@ -18,7 +10,8 @@ def attRest(s) :
     atts = atts.replace("."," ")
     if "#" in atts :
         [cls,id] = atts.split("#")
-        atts = 'class="%s" id="%s"' % (cls,id)
+        cls = cls.replace("/"," ")
+        atts = 'class="%s" id="%s"' % (cls,id)    
     elif "/" in atts :
         classes = atts.split("/")
         atts = 'class="' + " ".join(classes) + '"'     
@@ -26,13 +19,13 @@ def attRest(s) :
         atts='class="%s"' % atts
     return (atts,rest)
             
-def handleDivs(s,count,pageName) :
-    if (not "[." in s) and (not ".]" in s) : return ms(s)
+def handleDivs(s,count,pageName,site_root,sister_sites) :
+    if (not "[." in s) and (not ".]" in s) : return chef.cook(s,site_root,sister_sites)
     
     if (".]" in s) and (not "[." in s) :
         if (count < 1) : raise Exception("Mismatched divs, close without opening :: " + pageName + " :: " + s)        
         [rest,after] = s.rsplit(".]",1)
-        return handleDivs(rest,count-1,pageName) + "\n</div>\n"+ms(after)
+        return handleDivs(rest,count-1,pageName,site_root,sister_sites) + "\n</div>\n"+chef.cook(after,site_root,sister_sites)
     
     if ("[." in s) and (not ".]" in s) : 
         raise Exception("Mismatched divs, open without closing :: " + pageName + " :: " + s)
@@ -41,24 +34,24 @@ def handleDivs(s,count,pageName) :
         #open before close
         [before,rest] = s.split("[.",1)
         [atts,rest] = attRest(rest)
-        return ms(before) + ("\n<div %s>\n" % atts) + handleDivs(rest,count+1,pageName)
+        return chef.cook(before,site_root,sister_sites) + ("\n<div %s>\n" % atts) + handleDivs(rest,count+1,pageName,site_root,sister_sites)
         
     #close before the next open
     [before,after] = s.split(".]",1)
-    return handleDivs(before,count,pageName) + "\n</div>\n" + handleDivs(after,count-1,pageName)
+    return handleDivs(before,count,pageName,site_root,sister_sites) + "\n</div>\n" + handleDivs(after,count-1,pageName,site_root,sister_sites)
     
 class Page :
 
-    def __init__(self,page) :
+    def __init__(self,page,site_root,sister_sites={}) :
         [name,body] = (page.split("\n",1))
         self.name = name.strip()
-        self.body = handleDivs(body.strip(),0,self.name)
+        self.body = handleDivs(body.strip(),0,self.name,site_root,sister_sites)
         self.raw = body.strip()
             
 
 class BootDown :
 
-    def __init__(self,cwd,src) :
+    def __init__(self,cwd,src,site_root="",sister_sites={}) :
         src = src.decode("utf-8")
         if not "\n////" in src :
             self.pages = []
@@ -66,7 +59,11 @@ class BootDown :
         else :
             xs = src.split("\n////")
             self.make_globals(xs[0])
-            self.pages = [Page(x) for x in xs[1:]]
+            if self.atts.has_key("site_root") :
+            	site_root=self.atts["site_root"]
+            else :
+            	site_root=""
+            self.pages = [Page(x,site_root,sister_sites) for x in xs[1:]]
             
             # extra pages            
             if self.atts.has_key("extra_pages") : 
@@ -74,7 +71,7 @@ class BootDown :
                 page_names = [x for x in os.listdir(pages_path) if x[-3:]=='.md']
                 for p in page_names :  
                     with open(pages_path+"/"+p) as f:
-                        self.pages.append(Page(p.replace(".md",".html")+"\n"+f.read())) 
+                        self.pages.append(Page(p.replace(".md",".html")+"\n"+f.read(),site_root,sister_sites)) 
                         
     
     def pair_gen(self,s) :

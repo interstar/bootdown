@@ -1,32 +1,44 @@
-import re, markdown, yaml, urllib2
+import re, markdown, yaml, urllib2, csv
 
 
-## Line based 
+## Links
 
-r_sister = re.compile("(\[\[((\S+?):(\S+?))\]\])")
-def sub_sister(sister_sites) :
-	def ss(mo) :
-		mog = mo.groups()
-		site_id,page_name = mog[2],mog[3]
-		try :
-			url = sister_sites[site_id].strip("/")
-			return """<a href="%s/%s">%s:%s</a>""" % (url,page_name,site_id,page_name)
-		except Exception, e :
-			return "** | Error in SisterSite link ... seems like %s is not recognised. %s %s"  % (site_id,e,sister_sites)
-	return ss
+class LinkFixer :
+	def __init__(self,site_root,sister_sites) :
+		self.r_sister = re.compile("(\[\[((\S+?):(\S+?))\]\])")
+		self.r_sqrwiki = re.compile("(\[\[(\S+?)\]\])")
+		self.r_sqr_alt = re.compile("(\[\[((\S+?)(\s+)(.+))\]\])")
+		self.site_root = site_root
+		self.sister_sites = sister_sites
 
-r_sqrwiki = re.compile("(\[\[(\S+?)\]\])")
+	def sub_sister(self) :
+		def ss(mo) :
+			mog = mo.groups()
+			site_id,page_name = mog[2],mog[3]
+			try :
+				url = self.sister_sites[site_id].strip("/")
+				return """<a href="%s/%s">%s:%s</a>""" % (url,page_name,site_id,page_name)
+			except Exception, e :
+				return "** | Error in SisterSite link ... seems like %s is not recognised. %s %s"  % (site_id,e,sister_sites)
+		return ss
 
-
-def sister_line(s,sister_sites) :
-	if r_sister.search(s) :
-		s = r_sister.sub(sub_sister(sister_sites),s)
-	return s
+	def sister_line(self,s) :
+		if self.r_sister.search(s) :
+			s = self.r_sister.sub(self.sub_sister(),s)
+		return s
 	
-def sqrwiki_line(s) :
-	if r_sqrwiki.search(s) :
-		s = r_sqrwiki.sub(r"""<a href="/view/\2">\2</a>""",s)
-	return s
+	def sqrwiki_line(self,s) :
+		if self.r_sqrwiki.search(s) :
+			s = self.r_sqrwiki.sub(r"""<a href="%s\2">\2</a>"""%self.site_root,s)
+		return s
+		
+	def sqr_alt_line(self,s) :
+		if self.r_sqr_alt.search(s) :
+			s = self.r_sqr_alt.sub(r"""<a href="%s\3">\5</a>"""%self.site_root,s)
+		return s
+
+	def link_filters(self,line) :
+		return self.sqr_alt_line(self.sqrwiki_line(self.sister_line(line)))
 
 class DoubleCommaTabler :
 
@@ -58,15 +70,15 @@ class DoubleCommaTabler :
 table_line = DoubleCommaTabler()
 
 
-def wiki_filters(s,sister_sites) : 
-	return sqrwiki_line(sister_line(table_line(s), sister_sites))
+def wiki_filters(s,site_root,sister_sites) : 
+	return LinkFixer(site_root,sister_sites).link_filters(table_line(s))
 
 		
 ## Standard Wikish (the markup of UseMod)
 	
 class WikishProcessor :
 	
-    def __init__(self) :
+    def __init__(self,site_root,sister_sites) :
         self.blm = re.compile("^$")
         self.hr = re.compile("----")
         self.h6 = re.compile("^======(.+)======")
@@ -138,7 +150,7 @@ class WikishProcessor :
         return "\n".join(lines)
 
 
-chef = WikishProcessor()
+chef = WikishProcessor("",{})
 
 class Wikish2Markdown(WikishProcessor) :
 
@@ -235,6 +247,10 @@ class LocalFileBlock() :
 		return ["<pre>"] + ext_lines + ["</pre>"]
 
 class SimpleRawTranscludeBlock() :
+	def __init__(self,site_root,sister_sites) :
+		self.site_root = site_root
+		self.sister_sites = sister_sites
+
 	def evaluate(self,lines,md_eval=True) :
 		data = yaml.load("\n".join(lines))
 		try :
@@ -243,7 +259,7 @@ class SimpleRawTranscludeBlock() :
 			s = response.read()
 			#return s.split("\n")
 			if md_eval :
-				s = MarkdownThoughtStorms().cook(s,{})
+				s = MarkdownThoughtStorms().cook(s,site_root,sister_sites)
 			s = """
 <div class="transcluded">
 
@@ -260,7 +276,22 @@ class SimpleRawTranscludeBlock() :
 			return ["Error, can't get data from %s" % url]
 
 
-
+class CSVBlock() :
+	def evaluate(self,lines,md_eval=True) :
+		data = yaml.load("\n".join(lines))
+		try :
+			build = ""
+			with open(data["path"]) as csvfile :
+				reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+				for row in reader:
+					build = build + "<tr><td>" + u'</td><td>'.join((i.decode("utf-8") for i in row)) + "</td></tr>\n"
+				return ["""\n<table class="table table-striped table-bordered table-condensed">
+    %s    
+    </table>""" % build]
+		except Exception, e :
+			return ["Error in CSV Include %s " % e]
+	
+	
 class Block :
 	def __init__(self,typ) :
 		self.type = typ
@@ -277,6 +308,8 @@ class Block :
 			self.evaluator = LocalFileBlock()
 		elif self.type == "SIMPLERAWTRANSCLUDE" :
 			self.evaluator = SimpleRawTranscludeBlock()
+		elif self.type == "CSV" :
+			self.evaluator = CSVBlock()
 			
 		else :
 			self.evaluator = UnknownBlock()
@@ -333,10 +366,10 @@ class MarkdownThoughtStorms :
 	social_filters handles the social media embedding we use.
 	Finally we do markdown.
 	"""
-	def cook(self,p,sister_sites) :
+	def cook(self,p,site_root,sister_sites) :
 		lines = p.split("\n")
 		lines = BlockServices().handle_lines(lines)
-		lines = (wiki_filters(l,sister_sites) for l in lines)
+		lines = (wiki_filters(l,site_root,sister_sites) for l in lines)
 		page = markdown.markdown("\n".join((l.strip() for l in lines)))                
 		return page
 

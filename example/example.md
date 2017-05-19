@@ -3,6 +3,7 @@ footer=Copyleft <a href="http://project.geekweaver.com/">Phil Jones</a>, 2014-20
 projectname=An Example Site
 bootswatch=cyborg
 extra_pages=pages
+site_root=./
 ////index.html
 
 [.jumbotron [.container
@@ -67,33 +68,61 @@ Unlike most static site systems that are built around templating engines, with B
 .].].]
 ////tricks.html
 [.container 
+
 [.row [.col-md-12
+
 ## A CSV file
-::CSV=example.csv
+
+[<CSV
+path : example.csv
+
+>]
+
+
+
+### Other Table
+
+hello,, teenage,, america
+one,, two,, three
 
 .] .]
 
 [.row [.col-md-8
+
 ## Embedded YouTube
 
-::YOUTUBE=https://www.youtube.com/embed/LnvBVhDhGbw
-.] 
+[<YOUTUBE
+id : LnvBVhDhGbw
+>]
 
+.]
 
 [.col-md-4
+
 ## Embedded SoundCloud
-::SOUNDCLOUD=https://api.soundcloud.com/playlists/165775
+
+[<SOUNDCLOUD
+id : 165775
+>]
+
 .] .]
 
 [.row [.col-md-4
+
 ## Embedded BandCamp
-::BANDCAMP=2114639589 http://synaesmedia.bandcamp.com/album/mentufacturer-brazewok-ep Mentufacturer - Brazewok EP by Mentufacturer
+
+[<BANDCAMP
+id : 2114639589
+url : http://synaesmedia.bandcamp.com/album/mentufacturer-brazewok-ep
+description : Mentufacturer - Brazewok EP by Mentufacturer
+>]
+
 .] 
 
 [.col-md-8
 ## Hyperlinks
 
-This links to [[HelloWorld]] and [[AnotherGreenWorld]].
+This links to [[credits.html]] and [[credits.html Under a different name]].
 .] .] 
 .] 
 

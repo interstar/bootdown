@@ -2,11 +2,11 @@
 import unittest
 from bootdown import Page, BootDown, handleDivs
 
-from txlib import MarkdownThoughtStorms
+from txlib import MarkdownThoughtStorms, LinkFixer
 
 class TestPage(unittest.TestCase) :
     def test1(self) :       
-        p = Page("page1.html\nhello world")
+        p = Page("page1.html\nhello world","",{})
         self.assertEquals(p.name,"page1.html")
         self.assertEquals(p.body,"<p>hello world</p>")
         
@@ -63,12 +63,12 @@ class TestDivs(unittest.TestCase) :
 </div>
 <p>pqrs</p>
 </div>"""
-        self.assertEquals(handleDivs(s,0,"").replace("\n",""),des.replace("\n",""))
+        self.assertEquals(handleDivs(s,0,"","",{}).replace("\n",""),des.replace("\n",""))
 
     def test2(self) :       
         s = "qwerty [.she uiop .] [.ra fafa.] jkl"
         des = '<p>qwerty</p>\n<div class="she">\n<p>uiop</p>\n</div>\n\n<div class="ra">\n<p>fafa</p>\n</div>\n<p>jkl</p>\n'
-        self.assertEquals(handleDivs(s,0,"").replace("\n",""),des.replace("\n",""))
+        self.assertEquals(handleDivs(s,0,"","",{}).replace("\n",""),des.replace("\n",""))
 
         
 class TestRows(unittest.TestCase) :
@@ -128,21 +128,41 @@ class TestMultiClass(unittest.TestCase) :
 </div>
 """)
 
-class TestCustomizer(unittest.TestCase) :
+mkdn = MarkdownThoughtStorms()
+
+
+class TestBlocks(unittest.TestCase) :
     def test1(self) :
-        c = MarkdownThoughtStorms()
-         
         s1 = "<p>hello world</p>"
-        self.assertEquals(c.cook(s1,{}),s1)
+        self.assertEquals(mkdn.cook(s1,"",{}),s1)
          
     def test2(self) :
-        c = MarkdownThoughtStorms()
-        
         s2 = """[<YOUTUBE
 id : MO2mb5HY3Yg
 >]"""
-        self.assertEquals(c.cook(s2,{}),"""<div class="youtube-embedded"><iframe width="400" height="271" src="http://www.youtube.com/embed/MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe></div>""")
+        self.assertEquals(mkdn.cook(s2,"",{}),"""<div class="youtube-embedded"><iframe width="400" height="271" src="http://www.youtube.com/embed/MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe></div>""")
 
+class TestLinkFixing(unittest.TestCase) :
+	def test1(self) :
+		s = "Hello [[TeenageAmerica]]"
+		self.assertEquals(LinkFixer("",{}).link_filters(s),"""Hello <a href="TeenageAmerica">TeenageAmerica</a>""")
+	
+	def test2(self) :
+		s = "Hello [[TeenageAmerica]]"
+		self.assertEquals(LinkFixer("http://mysite.site/path/",{}).link_filters(s),"""Hello <a href="http://mysite.site/path/TeenageAmerica">TeenageAmerica</a>""")
+
+	def test3(self) :
+		s = "Hello [[Elsewhere:TeenageAmerica]]"
+		self.assertEquals(LinkFixer("",{"Elsewhere" : "http://remote.site/path/"}).link_filters(s),"""Hello <a href="http://remote.site/path/TeenageAmerica">Elsewhere:TeenageAmerica</a>""")
+		
+	def test4(self) :
+		s = "Another [[test.html]]"
+		self.assertEquals(LinkFixer("",{}).link_filters(s),"""Another <a href="test.html">test.html</a>""")
+		
+	def test5(self) :
+		s = "Now with [[text.html a text link]]"
+		self.assertEquals(LinkFixer("",{}).link_filters(s),"""Now with <a href="text.html">a text link</a>""")		
+		
 
 if __name__ == '__main__' :
     unittest.main()
