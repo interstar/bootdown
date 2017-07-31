@@ -1,7 +1,7 @@
 
 import re, os
 
-from txlib import MarkdownThoughtStorms
+from txlib import MarkdownThoughtStorms, Environment
 chef = MarkdownThoughtStorms()
 
 
@@ -20,12 +20,12 @@ def attRest(s) :
     return (atts,rest)
             
 def handleDivs(s,count,pageName,site_root,sister_sites) :
-    if (not "[." in s) and (not ".]" in s) : return chef.cook(s,site_root,sister_sites)
+    if (not "[." in s) and (not ".]" in s) : return chef.cook(s,Environment(site_root,sister_sites))
     
     if (".]" in s) and (not "[." in s) :
         if (count < 1) : raise Exception("Mismatched divs, close without opening :: " + pageName + " :: " + s)        
         [rest,after] = s.rsplit(".]",1)
-        return handleDivs(rest,count-1,pageName,site_root,sister_sites) + "\n</div>\n"+chef.cook(after,site_root,sister_sites)
+        return handleDivs(rest,count-1,pageName,site_root,sister_sites) + "\n</div>\n"+chef.cook(after,Environment(site_root,sister_sites))
     
     if ("[." in s) and (not ".]" in s) : 
         raise Exception("Mismatched divs, open without closing :: " + pageName + " :: " + s)
@@ -34,7 +34,7 @@ def handleDivs(s,count,pageName,site_root,sister_sites) :
         #open before close
         [before,rest] = s.split("[.",1)
         [atts,rest] = attRest(rest)
-        return chef.cook(before,site_root,sister_sites) + ("\n<div %s>\n" % atts) + handleDivs(rest,count+1,pageName,site_root,sister_sites)
+        return chef.cook(before,Environment(site_root,sister_sites)) + ("\n<div %s>\n" % atts) + handleDivs(rest,count+1,pageName,site_root,sister_sites)
         
     #close before the next open
     [before,after] = s.split(".]",1)

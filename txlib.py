@@ -1,25 +1,34 @@
 import re, markdown, yaml, urllib2, csv
 
 
+# Environment should have
+# sister_sites dict
+# site_root
+
+class Environment :
+	def __init__(self,sr,ss) :
+		self.sister_sites = ss
+		self.site_root = sr
+
 ## Links
+## _____________________________________________________________
 
 class LinkFixer :
-	def __init__(self,site_root,sister_sites) :
+	def __init__(self,env) :
 		self.r_sister = re.compile("(\[\[((\S+?):(\S+?))\]\])")
 		self.r_sqrwiki = re.compile("(\[\[(\S+?)\]\])")
 		self.r_sqr_alt = re.compile("(\[\[((\S+?)(\s+)(.+))\]\])")
-		self.site_root = site_root
-		self.sister_sites = sister_sites
+		self.environment = env
 
 	def sub_sister(self) :
 		def ss(mo) :
 			mog = mo.groups()
 			site_id,page_name = mog[2],mog[3]
 			try :
-				url = self.sister_sites[site_id].strip("/")
+				url = self.environment.sister_sites[site_id].strip("/")
 				return """<a href="%s/%s">%s:%s</a>""" % (url,page_name,site_id,page_name)
 			except Exception, e :
-				return "** | Error in SisterSite link ... seems like %s is not recognised. %s %s"  % (site_id,e,sister_sites)
+				return "** | Error in SisterSite link ... seems like %s is not recognised. %s %s"  % (site_id,e,self.environment.sister_sites)
 		return ss
 
 	def sister_line(self,s) :
@@ -29,16 +38,19 @@ class LinkFixer :
 	
 	def sqrwiki_line(self,s) :
 		if self.r_sqrwiki.search(s) :
-			s = self.r_sqrwiki.sub(r"""<a href="%s\2">\2</a>"""%self.site_root,s)
+			s = self.r_sqrwiki.sub(r"""<a href="%s\2">\2</a>"""%self.environment.site_root,s)
 		return s
 		
 	def sqr_alt_line(self,s) :
 		if self.r_sqr_alt.search(s) :
-			s = self.r_sqr_alt.sub(r"""<a href="%s\3">\5</a>"""%self.site_root,s)
+			s = self.r_sqr_alt.sub(r"""<a href="%s\3">\5</a>"""%self.environment.site_root,s)
 		return s
 
 	def link_filters(self,line) :
 		return self.sqr_alt_line(self.sqrwiki_line(self.sister_line(line)))
+		
+## Tables
+## _____________________________________________________________
 
 class DoubleCommaTabler :
 
@@ -69,16 +81,25 @@ class DoubleCommaTabler :
 		
 table_line = DoubleCommaTabler()
 
+## Magic Markers
+## _____________________________________________________________
 
-def wiki_filters(s,site_root,sister_sites) : 
-	return LinkFixer(site_root,sister_sites).link_filters(table_line(s))
+def magicMarkers(s) :
+	marker = re.compile("(\{=(\S+?)=\})")
+	if marker.search(s) :
+		s = marker.sub(r"",s)
+	return s
+			
+
+def wiki_filters(s,env) : 
+	return LinkFixer(env).link_filters(table_line(magicMarkers(s)))
 
 		
 ## Standard Wikish (the markup of UseMod)
 	
 class WikishProcessor :
 	
-    def __init__(self,site_root,sister_sites) :
+    def __init__(self,env) :
         self.blm = re.compile("^$")
         self.hr = re.compile("----")
         self.h6 = re.compile("^======(.+)======")
@@ -150,7 +171,8 @@ class WikishProcessor :
         return "\n".join(lines)
 
 
-chef = WikishProcessor("",{})
+null_env = Environment("",{})
+chef = WikishProcessor(null_env)
 
 class Wikish2Markdown(WikishProcessor) :
 
@@ -247,9 +269,8 @@ class LocalFileBlock() :
 		return ["<pre>"] + ext_lines + ["</pre>"]
 
 class SimpleRawTranscludeBlock() :
-	def __init__(self,site_root,sister_sites) :
-		self.site_root = site_root
-		self.sister_sites = sister_sites
+	def __init__(self,env) :
+		self.environment = env
 
 	def evaluate(self,lines,md_eval=True) :
 		data = yaml.load("\n".join(lines))
@@ -259,7 +280,7 @@ class SimpleRawTranscludeBlock() :
 			s = response.read()
 			#return s.split("\n")
 			if md_eval :
-				s = MarkdownThoughtStorms().cook(s,site_root,sister_sites)
+				s = MarkdownThoughtStorms().cook(s,self.environment)
 			s = """
 <div class="transcluded">
 
@@ -293,7 +314,7 @@ class CSVBlock() :
 	
 	
 class Block :
-	def __init__(self,typ) :
+	def __init__(self,typ,env) :
 		self.type = typ
 		self.lines = []
 		if self.type == "YOUTUBE" :
@@ -307,7 +328,7 @@ class Block :
 		elif self.type == "LOCALFILE" :
 			self.evaluator = LocalFileBlock()
 		elif self.type == "SIMPLERAWTRANSCLUDE" :
-			self.evaluator = SimpleRawTranscludeBlock()
+			self.evaluator = SimpleRawTranscludeBlock(env)
 		elif self.type == "CSV" :
 			self.evaluator = CSVBlock()
 			
@@ -323,7 +344,7 @@ class BlockServices :
 	"""
 	Provides embeddable blocks within pages. This should become the generic mechanism for all inclusions / transclusions 
 	"""
-	def handle_lines(self,lines) :
+	def handle_lines(self,lines,env) :
 		if not reduce(lambda a, b : a or b, [OPEN in l for l in lines],False) : return lines
 		current_block = None
 		in_block = False
@@ -351,7 +372,7 @@ class BlockServices :
 				if OPEN in l :
 					in_block = True
 					block_type = l.split(OPEN)[1].strip()
-					current_block = Block(block_type)
+					current_block = Block(block_type,env)
 					count = count + 1
 					continue
 				# here we are not in a block and not starting one
@@ -366,10 +387,10 @@ class MarkdownThoughtStorms :
 	social_filters handles the social media embedding we use.
 	Finally we do markdown.
 	"""
-	def cook(self,p,site_root,sister_sites) :
+	def cook(self,p,env) :
 		lines = p.split("\n")
-		lines = BlockServices().handle_lines(lines)
-		lines = (wiki_filters(l,site_root,sister_sites) for l in lines)
+		lines = BlockServices().handle_lines(lines,env)
+		lines = (wiki_filters(l,env) for l in lines)
 		page = markdown.markdown("\n".join((l.strip() for l in lines)))                
 		return page
 
