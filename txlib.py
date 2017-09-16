@@ -267,9 +267,19 @@ class LocalFileBlock() :
 		try :
 			f = open(data["path"])
 			ext_lines = f.readlines()
+			f.close()			
 		except Exception, e :
-			ext_lines = ["Error, can't read %s" % data["path"]]
-		return ["<pre>"] + ext_lines + ["</pre>"]
+			return ["<pre>"] + ["""Error, can't read %s. 
+			
+More specifically %s""" % (data["path"],e)] + ["</pre>"]
+
+ 		if data.has_key("filter") :
+			r = re.compile(data["filter"])
+			flt = lambda x : r.search(x)
+			outlines = (x for x in ext_lines if flt(x))
+		else :
+			outlines = ext_lines
+		return ["<pre>"] + [x.decode('utf-8') for x in outlines] + ["</pre>"]
 
 class SimpleRawTranscludeBlock() :
 	def __init__(self,env) :
@@ -314,7 +324,7 @@ class CSVBlock() :
     </table>""" % build]
 		except Exception, e :
 			return ["Error in CSV Include %s " % e]
-	
+
 	
 class Block :
 	def __init__(self,typ,env) :
