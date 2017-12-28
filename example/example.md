@@ -1,9 +1,10 @@
-menu=About about.html, Tricks tricks.html, Credits credits.html
+menu=About about.html, Tricks tricks.html, Gallery gallery.html, Credits credits.html
 footer=Copyleft <a href="http://project.geekweaver.com/">Phil Jones</a>, 2014-2016
 projectname=An Example Site
 bootswatch=cyborg
 extra_pages=pages
 site_root=./
+final_js=s
 ////index.html
 
 [.jumbotron [.container
@@ -136,4 +137,25 @@ This links to [[credits.html]] and [[credits.html Under a different name]].
 .].].]
 
 
+////gallery.html 
 
+[.container [.row [.col-md-12
+
+## Gallery
+
+[<GALLERY
+
+1:
+  url: bs/assets/keystoke.jpg
+  caption: This is Keystoke
+2:
+  url: bs/assets/dahlia.jpg
+  caption: A Dahlia
+3:
+  url: bs/assets/lantana.jpg
+  caption: This is a Lantana
+
+>]
+
+
+.] .] .]

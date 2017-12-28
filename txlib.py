@@ -326,6 +326,22 @@ class CSVBlock() :
 			return ["Error in CSV Include %s " % e]
 
 	
+class GalleryBlock() :
+	def evaluate(self,lines,md_eval=False) :
+		data = yaml.load("\n".join(lines))
+		try :
+			build = """<div class="gallery">"""
+			for k,v in data.iteritems() :
+				build=build + """\n<figure>
+<img src="%s"/>
+<figcaption>%s</figcaption>
+</figure>""" % (v["url"],v["caption"])
+			build=build+"</div>"
+			return [build]
+		except Exception, e : 
+			return ["Error %s" % e]
+			
+
 class Block :
 	def __init__(self,typ,env) :
 		self.type = typ
@@ -346,6 +362,8 @@ class Block :
 			self.evaluator = SimpleRawTranscludeBlock(env)
 		elif self.type == "CSV" :
 			self.evaluator = CSVBlock()
+		elif self.type == "GALLERY" :
+			self.evaluator = GalleryBlock()
 			
 		else :
 			self.evaluator = UnknownBlock()

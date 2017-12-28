@@ -11,6 +11,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" href="bs/css/bootstrap.min.css" media="screen">
+        <link rel="stylesheet" href="bs/css/gallery.css" media="screen">
     
         <style>
             body {
@@ -62,6 +63,8 @@
         <script src="bs/js/vendor/jquery-1.11.0.min.js"></script> 
 
         <script src="bs/js/vendor/bootstrap.js"></script>
+        <script src="bs/js/vendor/gallery.js"></script>
+
         
         $final_js
 
