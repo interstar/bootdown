@@ -325,8 +325,9 @@ class CSVBlock() :
 		except Exception, e :
 			return ["Error in CSV Include %s " % e]
 
+
 	
-class GalleryBlock() :
+class GalleryBlockX() :
 	def evaluate(self,lines,md_eval=False) :
 		data = yaml.load("\n".join(lines))
 		try :
@@ -341,6 +342,44 @@ class GalleryBlock() :
 		except Exception, e : 
 			return ["Error %s" % e]
 			
+
+
+class GalleryBlock() :
+	def evaluate(self,lines,md_eval=False) :
+		data = yaml.load("\n".join(lines))
+		try :
+			build = """<section><div class="container gal-container">
+"""
+			counter=0
+			for k,v in data.iteritems() :
+				build=build+"""
+<div class="col-md-4 col-sm-6 co-xs-12 gal-item">
+      <div class="box">
+        <a href="#" data-toggle="modal" data-target="#%s">
+          <img src="%s" class="img-thumbnail">
+        </a>
+        <div class="modal fade" id="%s" tabindex="-1" role="dialog">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">X</span></button>
+              <div class="modal-body">
+                <img src="%s" class="img-rounded">
+              </div>
+                <div class="col-md-12 description">
+                  <h4>%s</h4>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+""" % (counter,v["url"],counter,v["url"],v["caption"])
+				counter=counter+1
+			build = build+"\n</div></section>"
+			return [build]
+			
+		except Exception, e :
+			return ["Error %s" % e]
 
 class Block :
 	def __init__(self,typ,env) :

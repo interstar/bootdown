@@ -1,10 +1,10 @@
 menu=About about.html, Tricks tricks.html, Gallery gallery.html, Credits credits.html
-footer=Copyleft <a href="http://project.geekweaver.com/">Phil Jones</a>, 2014-2016
+footer=Copyleft <a href="http://project.geekweaver.com/">Phil Jones</a>, 2014-2018
 projectname=An Example Site
 bootswatch=cyborg
 extra_pages=pages
 site_root=./
-final_js=s
+final_js=
 ////index.html
 
 [.jumbotron [.container
