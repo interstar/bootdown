@@ -80,8 +80,11 @@ class BootDown :
 
     def make_menu(self) :
         if self.atts.has_key("menu") :
-            def link(x) : 
-                [name,url] = x.split(" ")
+            def link(x) :
+                xs = x.split(" ")
+                url = xs[-1]
+                name = " ".join(xs[:-1])
+                #[name,url] = x.split(" ")
                 return """\n<li><a href="%s">%s</a></li>""" % (url.strip(),name.strip()) 
             self.atts["menu"] = '<ul class="nav navbar-nav">' + "".join(link(x.strip()) for x in self.atts["menu"].split(",")) + '\n</ul>'
         else :
