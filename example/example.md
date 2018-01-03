@@ -131,6 +131,7 @@ This links to [[credits.html]] and [[credits.html Under a different name]].
   * Thanks to [BootStrap](http://getbootstrap.com/) 
   * Thanks to [Python Markdown Lib](https://pypi.python.org/pypi/Markdown)
   * Thanks to [Bootswatch](https://bootswatch.com/)
+  * Thanks to [Nabeelkondotty](https://bootsnipp.com/nabeelkondotty) for the [Gallery Code](https://bootsnipp.com/snippets/33Qjo)
   * Thanks to Susan Jones for the photographs.
   * Glue by [Phil Jones](http://sdi.thoughtstorms.info/) 2014-2016
 
