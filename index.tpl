@@ -58,7 +58,7 @@
         <p>$footer</p>
       </footer>
       
-    </div> <!-- /container -->        
+    </div> <!-- /container --> 
     
         <script src="bs/js/vendor/jquery-1.11.0.min.js"></script> 
 
