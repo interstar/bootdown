@@ -465,6 +465,7 @@ class MarkdownThoughtStorms :
 	def md(self,p) :
 		p = p.replace("<","-=OPEN=-")
 		p = p.replace(">","-=CLOSE=-")
+		print p
 		p = markdown.markdown(p)
 		p = p.replace("-=CLOSE=-",">")
 		p = p.replace("-=OPEN=-","<")
@@ -473,12 +474,17 @@ class MarkdownThoughtStorms :
 	def wiki_filters(self,s) : 
 		return LinkFixer(self.env).link_filters(magicMarkers(self.table_line(s)))
 
+	def mystrip(self,s) :
+		if s.strip() == "" : return s.strip()
+		if s.strip()[0] != "*" : return s.strip()
+		return s
+	
 	def cook(self,p,env) :
 		self.env = env
 		self.table_line = DoubleCommaTabler(env)
 		lines = p.split("\n")
 		lines = BlockServices().handle_lines(lines,env)
 		lines = [self.wiki_filters(l) for l in lines]
-		page = self.md("\n".join((l.strip() for l in lines)))                
+		page = self.md("\n".join((self.mystrip(l) for l in lines)))                
 		return page
 
