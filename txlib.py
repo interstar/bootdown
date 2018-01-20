@@ -465,7 +465,6 @@ class MarkdownThoughtStorms :
 	def md(self,p) :
 		p = p.replace("<","-=OPEN=-")
 		p = p.replace(">","-=CLOSE=-")
-		print p
 		p = markdown.markdown(p)
 		p = p.replace("-=CLOSE=-",">")
 		p = p.replace("-=OPEN=-","<")
