@@ -1,5 +1,5 @@
 
-import re, os
+import re, os, sys
 
 from thoughtstorms.txlib import MarkdownThoughtStorms, Environment
 chef = MarkdownThoughtStorms()
@@ -100,20 +100,19 @@ class BootDown :
         
             
 if __name__ == '__main__' :
-    import sys,os,distutils,string
+    import distutils,string
 	
     import shutil
     
     #codeHome = "/".join((os.path.abspath(__file__).split("/"))[:-1])+"/"
     #if codeHome == "" :
     codeHome = os.path.dirname(os.path.realpath(__file__))
-		
+  
     cwd = os.getcwd()
-    
+
     print "Code Home : %s " % codeHome
     print "CWD : %s " % cwd
-    
-         
+            
     fName = sys.argv[1]
     if fName[0:2] == ".\\" : 
         fName = fName[2:]
