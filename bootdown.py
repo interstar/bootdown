@@ -1,7 +1,7 @@
 
 import re, os
 
-from txlib import MarkdownThoughtStorms, Environment
+from thoughtstorms.txlib import MarkdownThoughtStorms, Environment
 chef = MarkdownThoughtStorms()
 
 
