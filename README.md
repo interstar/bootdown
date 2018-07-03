@@ -7,7 +7,9 @@ REALLY lazy static sites with Bootstrap and Markdown.
 
 Note that this project now has a dependency on the [Project ThoughtStorms](http://project.thoughtstorms.info) libraries. 
 
-    pip install thoughtstorms
+    pip install thoughtstorms markdown
+    
+then :
 
     git clone git@github.com:interstar/bootdown.git
     cd bootdown/example/
