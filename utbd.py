@@ -2,7 +2,7 @@
 import unittest
 from bootdown import Page, BootDown, handleDivs
 
-from txlib import MarkdownThoughtStorms, LinkFixer
+from thoughtstorms.txlib import MarkdownThoughtStorms, LinkFixer, Environment
 
 class TestPage(unittest.TestCase) :
     def test1(self) :       
@@ -128,40 +128,42 @@ class TestMultiClass(unittest.TestCase) :
 </div>
 """)
 
+
 mkdn = MarkdownThoughtStorms()
 
+env = Environment("/",{})
 
 class TestBlocks(unittest.TestCase) :
     def test1(self) :
         s1 = "<p>hello world</p>"
-        self.assertEquals(mkdn.cook(s1,"",{}),s1)
+        self.assertEquals(mkdn.cook(s1,env),"<p>"+s1+"</p>")
          
     def test2(self) :
         s2 = """[<YOUTUBE
 id : MO2mb5HY3Yg
 >]"""
-        self.assertEquals(mkdn.cook(s2,"",{}),"""<div class="youtube-embedded"><iframe width="400" height="271" src="http://www.youtube.com/embed/MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe></div>""")
+        self.assertEquals(mkdn.cook(s2,env),"""<p><div class="youtube-embedded"><iframe width="400" height="271" src="http://www.youtube.com/embed/MO2mb5HY3Yg" frameborder="0" allowfullscreen></iframe></div></p>""")
 
 class TestLinkFixing(unittest.TestCase) :
 	def test1(self) :
 		s = "Hello [[TeenageAmerica]]"
-		self.assertEquals(LinkFixer("",{}).link_filters(s),"""Hello <a href="TeenageAmerica">TeenageAmerica</a>""")
+		self.assertEquals(LinkFixer(Environment("",{})).link_filters(s),"""Hello <a href="TeenageAmerica">TeenageAmerica</a>""")
 	
 	def test2(self) :
 		s = "Hello [[TeenageAmerica]]"
-		self.assertEquals(LinkFixer("http://mysite.site/path/",{}).link_filters(s),"""Hello <a href="http://mysite.site/path/TeenageAmerica">TeenageAmerica</a>""")
+		self.assertEquals(LinkFixer(Environment("http://mysite.site/path/",{})).link_filters(s),"""Hello <a href="http://mysite.site/path/TeenageAmerica">TeenageAmerica</a>""")
 
 	def test3(self) :
 		s = "Hello [[Elsewhere:TeenageAmerica]]"
-		self.assertEquals(LinkFixer("",{"Elsewhere" : "http://remote.site/path/"}).link_filters(s),"""Hello <a href="http://remote.site/path/TeenageAmerica">Elsewhere:TeenageAmerica</a>""")
+		self.assertEquals(LinkFixer(Environment("",{"Elsewhere" : "http://remote.site/path/"})).link_filters(s),"""Hello <a href="http://remote.site/path/TeenageAmerica">Elsewhere:TeenageAmerica</a>""")
 		
 	def test4(self) :
 		s = "Another [[test.html]]"
-		self.assertEquals(LinkFixer("",{}).link_filters(s),"""Another <a href="test.html">test.html</a>""")
+		self.assertEquals(LinkFixer(Environment("",{})).link_filters(s),"""Another <a href="test.html">test.html</a>""")
 		
 	def test5(self) :
 		s = "Now with [[text.html a text link]]"
-		self.assertEquals(LinkFixer("",{}).link_filters(s),"""Now with <a href="text.html">a text link</a>""")		
+		self.assertEquals(LinkFixer(Environment("",{})).link_filters(s),"""Now with <a href="text.html">a text link</a>""")		
 		
 
 if __name__ == '__main__' :
