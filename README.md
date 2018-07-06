@@ -7,13 +7,12 @@ REALLY lazy static sites with Bootstrap and Markdown.
 
 Note that this project now has a dependency on the [Project ThoughtStorms](http://project.thoughtstorms.info) libraries. 
 
-    pip install thoughtstorms markdown
+    pip install thoughtstorms markdown pyyaml
     
 then :
 
-    git clone git@github.com:interstar/bootdown.git
+    git clone https://github.com/interstar/bootdown.git
     cd bootdown/example/
-    mkdir assets
     python ../bootdown.py example.md
     firefox example/index.html
 
@@ -38,8 +37,6 @@ Unlike most static site systems that are built around templating engines, with B
   * Emphasis on the "acceptable". Comes with several off-the-shelf Bootstrap / [Bootswatches](https://bootswatch.com/) to choose from.
   * But strongly discourages you trying to write your own CSS or other styling. No templates! 
     * (Well, actually you CAN put a custom template in but it's a hack.)
-  * <s>Single Python script</s> ... 
-    * it's now two Python scripts. I'm not sure how important this was. I think I'm going to refactor into several Python files to make cleaner.
   * Write your entire site in a single .md file. No faffing with managing multiple source files. 
     * (Unless you really want to, in which case put further .md files in an extra_pages subdirectory.)
   * Suitable for landing pages, documentation sites, guides, handbooks, portfolios etc.
@@ -48,5 +45,5 @@ Unlike most static site systems that are built around templating engines, with B
 
 ## Dependencies
 
-Needs Python's Markdown and CSV libraries installed
+Needs [ThoughtStorms](https://pypi.org/project/thoughtstorms/) and Python's Markdown, YAML and CSV libraries installed.
 
